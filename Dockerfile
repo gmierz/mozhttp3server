@@ -17,7 +17,8 @@ RUN apt install -yq \
         python3.8 \
         python3.8-dev \
         python3.8-venv \
-        python3-distutils
+        python3-distutils \
+        sudo
 
 
 RUN useradd -m docker && \
