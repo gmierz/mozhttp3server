@@ -39,8 +39,6 @@ RUN touch $HOME/.sudo_as_admin_successful
 
 COPY setup.py /home/docker/data/
 COPY mozhttp3server /home/docker/data/mozhttp3server
-COPY cert.pem /home/docker/data/
-COPY key.pem /home/docker/data/ 
 
 RUN python3.8 -m venv /home/docker/data
 RUN bin/python setup.py develop
