@@ -24,6 +24,14 @@ async def shopping():
     return await send_file(str(pathlib.Path(HERE, "shopping/shopping.html")))
 
 
+@app.route("/news.html")
+async def news():
+    await common_make_push_promise()
+    for image in pathlib.Path(HERE, "news/images").rglob(".*"):
+        await make_push_promise(url_for("", filename=f"news/images/{image.name}"))
+    return await send_file(str(pathlib.Path(HERE, "news/news.html")))
+
+
 @app.route("/other")
 async def other():
     return "<b>Other</b>"
