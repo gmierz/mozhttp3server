@@ -6,3 +6,7 @@ app = Quart(__name__)
 async def index():
     return "<b>Hello World!</b>"
 
+
+@app.route("/other")
+async def other():
+    return "<b>Other</b>"
