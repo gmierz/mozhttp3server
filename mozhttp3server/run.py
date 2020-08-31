@@ -1,5 +1,5 @@
 import platform
-from quart import Quart, make_push_promise, url_for
+from quart import Quart, make_push_promise, url_for, request
 from quart.static import send_file
 import pathlib
 
