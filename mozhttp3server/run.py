@@ -1,7 +1,8 @@
 import platform
-from quart import Quart, make_push_promise, url_for, request
+from quart import Quart, make_push_promise, url_for, request, abort
 from quart.static import send_file
 import pathlib
+import os
 
 from mozhttp3server.throttling.linux import LinuxThrottler
 from mozhttp3server.throttling.macos import MacosThrottler
@@ -59,13 +60,20 @@ async def th_index():
     return app.throttler.status
 
 
+def check_key():
+    key = request.headers.get("X-WEBNETEM-KEY")
+    if key is None or key != os.environ.get("WEBNETEM-KEY"):
+        abort(401)
+
+
 @app.route("/_throttler/shape", methods=["POST"])
 async def th_shape():
+    check_key()
     data = await request.get_json()
     return app.throttler.shape(data)
 
 
 @app.route("/_throttler/reset")
 async def th_reset():
+    check_key()
     return app.throttler.teardown()
-
