@@ -65,8 +65,13 @@ async def th_index():
 def check_key():
     key = request.headers.get("X-WEBNETEM-KEY")
     if key is None or key != os.environ.get("WEBNETEM_KEY"):
-        abort(Response(status=401, content_type="application/json",
-            response=json.dumps({"ERROR": "Unauthorized"})))
+        abort(
+            Response(
+                status=401,
+                content_type="application/json",
+                response=json.dumps({"ERROR": "Unauthorized"}),
+            )
+        )
 
 
 @app.route("/_throttler/shape", methods=["POST"])

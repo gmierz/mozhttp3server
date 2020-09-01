@@ -2,6 +2,18 @@ from mozhttp3server.throttling.throttler import Throttler
 from mozhttp3server.throttling.netimpair import NetemInstance
 
 
+OPTIONS = {
+    "loss_ratio": 0,
+    "loss_corr": 0,
+    "dup_ratio": 0,
+    "delay": 0,
+    "jitter": 0,
+    "delay_jitter_corr": 0,
+    "reorder_ratio": 0,
+    "reorder_corr": 0,
+}
+
+
 class LinuxThrottler(Throttler):
     def initialize(self):
         self.netem = NetemInstance(self.nic, self.inbound, self.include, self.exclude)
@@ -20,20 +32,12 @@ class LinuxThrottler(Throttler):
             except Exception:
                 pass
         self.netem.initialize()
-        self.netem.netem(
-            loss_ratio=int(options.get("loss_ratio", 0)),
-            loss_corr=int(options.get("loss_corr", 0)),
-            dup_ratio=int(options.get("dup_ratio", 0)),
-            delay=int(options.get("delay", 0)),
-            jitter=int(options.get("jitter", 0)),
-            delay_jitter_corr=int(options.get("delay_jitter_corr", 0)),
-            reorder_ratio=int(options.get("reorder_ratio", 0)),
-            reorder_corr=int(options.get("reorder_corr", 0)),
-        )
-        options = dict(options)
-        for key in ("key", "subparser_name", "server"):
+        self.netem.netem(**options)
+        status = dict(OPTIONS)
+        for key in status:
             if key in options:
-                del options[key]
-        self.status.update(options)
-        self.status["throttling"] = True
+                status[key] = options[key]
+
+        status["throttling"] = True
+        self.status = status
         return self.status
