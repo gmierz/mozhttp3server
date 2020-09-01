@@ -32,12 +32,11 @@ class LinuxThrottler(Throttler):
             except Exception:
                 pass
         self.netem.initialize()
-        self.netem.netem(**options)
         status = dict(OPTIONS)
         for key in status:
             if key in options:
                 status[key] = options[key]
-
+        self.netem.netem(**status)
         status["throttling"] = True
         self.status = status
         return self.status
