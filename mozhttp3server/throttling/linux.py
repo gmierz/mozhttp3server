@@ -30,7 +30,10 @@ class LinuxThrottler(Throttler):
             reorder_ratio=int(options.get("reorder_ratio", 0)),
             reorder_corr=int(options.get("reorder_corr", 0)),
         )
-
+        options = dict(options)
+        for key in ("key", "subparser_name", "server"):
+            if key in options:
+                del options[key]
         self.status.update(options)
         self.status["throttling"] = True
         return self.status
