@@ -57,6 +57,16 @@ async def news():
     return await get_static_page("news")
 
 
+@app.route("/gallery.html")
+async def gallery():
+    return await get_static_page("gallery")
+
+
+@app.route("/photoblog.html")
+async def photoblog():
+    return await get_static_page("photoblog")
+
+
 @app.route("/_throttler")
 async def th_index():
     return app.throttler.status
