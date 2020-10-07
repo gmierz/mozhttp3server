@@ -197,12 +197,16 @@ class NetemInstance(object):
         # Set network impairment
         self._check_call(impair_cmd)
         print("Impairment timestamp: {0}".format(datetime.datetime.today()))
+        self.stop_netem(5)
 
-    def stop_netem(self):
-        self._check_call(
-            "tc qdisc change dev {0} parent 1:3 handle 30: netem".format(self.nic)
-        )
-        print("Impairment stopped timestamp: {0}".format(datetime.datetime.today()))
+    def stop_netem(self, minutes=0):
+        call = "tc qdisc change dev {0} parent 1:3 handle 30: netem".format(self.nic)
+        if when == 0:
+            self._check_call(call)
+            print("Impairment stopped timestamp: {0}".format(datetime.datetime.today()))
+        else:
+            self._check_call(call + " | at now + %d minutes" % when)
+            print("Impairment will be stopping in %d minutes" % when)
 
     def rate(self, limit=0, buffer_length=2000, latency=20, toggle=None):
         """Enable packet reorder."""
