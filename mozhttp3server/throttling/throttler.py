@@ -10,7 +10,19 @@ class Throttler:
         if logger is None:
             logger = logging.getLogger("webnetem")
         self.logger = logger
-        self.status = {"throttling": False}
+        self._status = {"throttling": False}
+        self._test_started = False
+
+    @property
+    def status(self):
+        self._status["test_running"] = self._test_started
+        return self._status
 
     def initialize(self):
         pass
+
+    def start_test(self):
+        self._test_started = True
+
+    def stop_test(self):
+        self._test_started = False

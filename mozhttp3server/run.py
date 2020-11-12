@@ -95,3 +95,15 @@ async def th_shape():
 async def th_reset():
     check_key()
     return app.throttler.teardown()
+
+
+@app.route("/_throttler/start_test")
+async def th_start():
+    check_key()
+    return app.throttler.start_test()
+
+
+@app.route("/_throttler/stop_test")
+async def th_stop():
+    check_key()
+    return app.throttler.stop_test()

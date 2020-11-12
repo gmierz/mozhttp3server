@@ -22,7 +22,7 @@ class LinuxThrottler(Throttler):
     def teardown(self):
         self.netem.stop_netem()
         self.netem.teardown()
-        self.status = {"throttling": False}
+        self._status = {"throttling": False}
         return self.status
 
     def shape(self, options):
@@ -38,5 +38,5 @@ class LinuxThrottler(Throttler):
                 status[key] = options[key]
         self.netem.netem(**status)
         status["throttling"] = True
-        self.status = status
+        self._status = status
         return self.status
