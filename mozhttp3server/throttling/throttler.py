@@ -22,6 +22,8 @@ class Throttler:
         pass
 
     def start_test(self):
+        if self._test_started:
+            raise Exception("Already started")
         self._test_started = True
 
     def stop_test(self):
