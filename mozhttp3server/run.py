@@ -2,6 +2,8 @@ import platform
 import pathlib
 import os
 import json
+import time
+import functools
 
 from quart import Quart, make_push_promise, url_for, request, abort, Response
 from quart.static import send_file
@@ -10,6 +12,7 @@ from mozhttp3server.throttling.linux import LinuxThrottler
 from mozhttp3server.throttling.macos import MacosThrottler
 
 
+FIVE_MINUTES = 60 * 5
 app = Quart(__name__, static_folder="")
 HERE = pathlib.Path(__file__).parent
 
@@ -42,29 +45,37 @@ async def get_static_page(name):
     return await send_file(str(pathlib.Path(HERE, name, f"{name}.html")))
 
 
+_CALLERS = {}
+
+
+def log_caller():
+    _CALLERS[request.remote_addr] = time.time()
+
+
+def last_caller():
+    if len(_CALLERS) == 0:
+        return None
+    by_time = [(when, ip) for ip, when in _CALLERS.items()]
+    by_time.sort(reverse=True)
+    return by_time[0]
+
+
 @app.route("/")
 async def index():
     return await get_static_page("index")
 
 
-@app.route("/shopping.html")
-async def shopping():
-    return await get_static_page("shopping")
+# static pages we server in h2 and h3
+for page in "shopping", "news", "gallery", "photoblog":
 
+    async def _view(page):
+        log_caller()
+        return await get_static_page(page)
 
-@app.route("/news.html")
-async def news():
-    return await get_static_page("news")
+    view = functools.partial(_view, page)
+    view.__name__ = page
 
-
-@app.route("/gallery.html")
-async def gallery():
-    return await get_static_page("gallery")
-
-
-@app.route("/photoblog.html")
-async def photoblog():
-    return await get_static_page("photoblog")
+    app.add_url_rule(f"/{page}.html", view_func=view)
 
 
 @app.route("/_throttler")
@@ -87,6 +98,7 @@ def check_key():
 @app.route("/_throttler/shape", methods=["POST"])
 async def th_shape():
     check_key()
+    log_caller()
     data = await request.get_json()
     return app.throttler.shape(data)
 
@@ -94,16 +106,30 @@ async def th_shape():
 @app.route("/_throttler/reset")
 async def th_reset():
     check_key()
+    log_caller()
     return app.throttler.teardown()
 
 
 @app.route("/_throttler/start_test")
 async def th_start():
     check_key()
-    return app.throttler.start_test()
+    last = last_caller()
+    force = False
+    if last is not None:
+        when, ip = last
+        if ip == request.remote_addr:
+            # Same IP, restarting
+            force = True
+        else:
+            # Another IP, but not active in the past 5 minutes
+            force = time.time() - when > FIVE_MINUTES
+
+    log_caller()
+    return app.throttler.start_test(force=force)
 
 
 @app.route("/_throttler/stop_test")
 async def th_stop():
     check_key()
+    log_caller()
     return app.throttler.stop_test()

@@ -21,10 +21,12 @@ class Throttler:
     def initialize(self):
         pass
 
-    def start_test(self):
-        if self._test_started:
+    def start_test(self, force=False):
+        if self._test_started and not force:
             raise Exception("Already started")
         self._test_started = True
+        return self.status
 
     def stop_test(self):
         self._test_started = False
+        return self.status
