@@ -20,8 +20,14 @@ class LinuxThrottler(Throttler):
         return {}
 
     def teardown(self):
-        self.netem.stop_netem()
-        self.netem.teardown()
+        try:
+            self.netem.stop_netem()
+        except Exception:
+            pass
+        try:
+            self.netem.teardown()
+        except Exception:
+            pass
         self._status = {"throttling": False}
         return self.status
 
