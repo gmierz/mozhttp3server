@@ -80,19 +80,40 @@ for page in "shopping", "news", "gallery", "photoblog":
 
 @app.route("/_throttler")
 async def th_index():
-    return app.throttler.status
+    status = app.throttler.status
+
+    # Reset the service if it's stuck
+    # (Must be authorized to start a test to do this)
+    if status["test_running"] and check_key(fail=False):
+        last = last_caller()
+        if last is None:
+            # Nothing made a request, but the service
+            # is running a test
+            app.throttler.stop_test()
+        else:
+            # It's been 5 minutes since the last test
+            # so we can reset it
+            when, ip = last
+            if time.time() - when > FIVE_MINUTES:
+                app.throttler.stop_test()
+
+    return status
 
 
-def check_key():
+def check_key(fail=True):
     key = request.headers.get("X-WEBNETEM-KEY")
+    passed = True
     if key is None or key != os.environ.get("WEBNETEM_KEY"):
-        abort(
-            Response(
-                status=401,
-                content_type="application/json",
-                response=json.dumps({"ERROR": "Unauthorized"}),
+        passed = False
+        if fail:
+            abort(
+                Response(
+                    status=401,
+                    content_type="application/json",
+                    response=json.dumps({"ERROR": "Unauthorized"}),
+                )
             )
-        )
+    return passed
 
 
 @app.route("/_throttler/shape", methods=["POST"])
